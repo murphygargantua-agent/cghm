@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-  actions: read
 
 jobs:
   python:
@@ -51,16 +50,16 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Nextflow
         run: |
-          curl -sL "https://api.github.com/repos/nextflow-io/cli/releases/latest" | grep -o '"tag_name": "[^"]*"' | head -1 | sed 's/"tag_name": "//;s/"//' > /tmp/nf_version
-          NF_VERSION=$(cat /tmp/nf_version)
-          echo "Nextflow version: $NF_VERSION"
-          mkdir -p /opt/nextflow
-          curl -sL -o /opt/nextflow/nf.zip "https://api.github.com/repos/nextflow-io/cli/releases/download/$NF_VERSION/nextflow-$NF_VERSION-standalone.zip" || curl -sL -o /opt/nextflow/nf.zip "https://github.com/nextflow-io/cli/releases/download/$NF_VERSION/nextflow-$NF_VERSION-standalone.zip"
-          cd /opt/nextflow && unzip -q nf.zip && rm nf.zip && chmod +x nextflow
+          wget -q -O nf.zip "https://github.com/nextflow-io/cli/releases/download/v24.04.6/nextflow-24.04.6-standalone.zip" || wget -q -O nf.zip "https://api.github.com/repos/nextflow-io/cli/releases/download/v24.04.6/nextflow-24.04.6-standalone.zip"
+          unzip -q nf.zip -d /opt/nextflow
+          rm nf.zip
+          chmod +x /opt/nextflow/nextflow
       - name: Nextflow syntax check
         run: /opt/nextflow/nextflow run main.nf -c config.nf --dry-run
       - name: Run pipeline against test data
         run: /opt/nextflow/nextflow run main.nf -c config.nf
+        working-directory: ${{ github.workspace }}
       - name: Verify outputs
         run: |
-          find work -type f -name "*.tsv" -o -name "*.html" | sort | while read f; do echo "OK: $f ($(wc -c < "$f") bytes)"; done
+          find work -type f \( -name "*.tsv" -o -name "*.html" \) | sort | while read f; do echo "OK: $f ($(wc -c < "$f") bytes)"; done
+        working-directory: ${{ github.workspace }}
