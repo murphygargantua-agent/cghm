@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  python:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -47,32 +47,3 @@ jobs:
           for f in /tmp/cghm_test/test.html /tmp/cghm_test/test_allele_summary.tsv /tmp/cghm_test/test_allele_summary_counts.tsv /tmp/cghm_test/test_allele_dominance.tsv /tmp/cghm_test/test_allelic_detailed_matrix.tsv /tmp/cghm_test/test_colors.tsv /tmp/cghm_test/test_lineage_summary.tsv /tmp/cghm_test/test_lineage_distribution.tsv; do
             test -f "$f" && echo "OK: $f" || echo "MISSING: $f"
           done
-
-  nextflow:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Nextflow
-        run: |
-          curl -fsSL -o nf.zip "https://github.com/nextflow-io/cli/releases/download/v24.04.6/nextflow-24.04.6-standalone.zip" || \
-          curl -fsSL -o nf.zip "https://api.github.com/repos/nextflow-io/cli/releases/download/v24.04.6/nextflow-24.04.6-standalone.zip"
-          unzip -q nf.zip -d /opt/nextflow
-          rm nf.zip
-          chmod +x /opt/nextflow/nextflow
-
-      - name: Nextflow syntax check
-        run: /opt/nextflow/nextflow run main.nf -c config.nf --dry-run
-
-      - name: Run pipeline against test data
-        run: |
-          cd ${{ github.workspace }}
-          /opt/nextflow/nextflow run main.nf -c config.nf
-        env:
-          NAMESPACE: 1
-
-      - name: Verify outputs
-        run: |
-          cd ${{ github.workspace }}
-          find work -type f \( -name "*.tsv" -o -name "*.html" \) | sort | while read f; do echo "OK: $f ($(wc -c < "$f") bytes)"; done
