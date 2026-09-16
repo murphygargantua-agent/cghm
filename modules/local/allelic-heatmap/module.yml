@@ -1,0 +1,62 @@
+# nf-core module: allelic-heatmap
+# Module metadata ---------------------------------------------------------
+name: "cghm::allelic-heatmap"
+version: "1.0.0"
+license: "MIT"
+authors:
+  - "Murphy"
+homepage: "https://github.com/insapathogenomics/allelic_diversity"
+description: "cgMLST allelic heatmap generation for Chlamydia trachomatis"
+references:
+  - "Lohdia et al., 2025. Advancing Chlamydia trachomatis genomic surveillance and research with a novel core-genome MLST (cgMLST) approach."
+
+# Docker/conda -----------------------------------------------------------
+container: "docker.io/library/python:3.10-slim"
+
+# Parameters -------------------------------------------------------------
+parameters:
+  - heatmap_output_dir
+  - heatmap_output_prefix
+  - heatmap_group_column
+  - heatmap_mode
+  - heatmap_ncat
+  - heatmap_ncat_dominant
+
+# Inputs -----------------------------------------------------------------
+inputs:
+  - allele_matrix:
+      type: file
+      description: "cgMLST allele matrix TSV (samples x loci; '0' = missing)"
+  - metadata:
+      type: file
+      description: "sample metadata TSV (samples x columns)"
+  - tree:
+      type: file
+      description: "single-linkage hierarchical clustering dendrogram (Newick)"
+
+# Outputs ----------------------------------------------------------------
+outputs:
+  - heatmap_html:
+      type: file
+      pattern: "*.html"
+      description: "interactive Plotly heatmap"
+  - allele_summary:
+      type: file
+      pattern: "*_allele_summary.tsv"
+      description: "per-group allele summary"
+  - allele_summary_counts:
+      type: file
+      pattern: "*_allele_summary_counts.tsv"
+      description: "counts of loci/alleles per group"
+  - allele_dominance:
+      type: file
+      pattern: "*_allele_dominance.tsv"
+      description: "allele dominance per group"
+  - allelic_detailed_matrix:
+      type: file
+      pattern: "*_allelic_detailed_matrix.tsv"
+      description: "detailed allele matrix with categories"
+  - auto_colors:
+      type: file
+      pattern: "*_colors.tsv"
+      description: "auto-generated color palette"

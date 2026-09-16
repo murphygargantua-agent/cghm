@@ -1,0 +1,57 @@
+#!/usr/bin/env nextflow
+/**
+ * nf-core module: allelic-heatmap
+ *
+ * Tests that the module emits the expected output files when run against
+ * a small sample allele matrix.  The full 1230-sample matrix is slow; this
+ * test uses a tiny synthetic matrix for speed.
+ */
+
+nextflow {
+    container = "docker.io/library/python:3.10-slim"
+}
+
+process {
+    container = "docker.io/library/python:3.10-slim"
+}
+
+params {
+    output_dir = "results/heatmap_test"
+    output_prefix = "heatmap_test"
+    group_column = "lineage"
+    mode = "frequency"
+    ncat = 3
+    ncat_dominant = 3
+}
+
+workflow {
+    // Create tiny test inputs as process outputs
+    Channel {
+        input: tuple(sample_matrix, sample_metadata, sample_tree)
+    }
+
+    // Run the module
+    ALLELIC_HEATMAP(
+        allele_matrix: sample_matrix,
+        metadata: sample_metadata,
+        tree: sample_tree,
+    ) {
+        params.output_dir = output_dir
+        params.output_prefix = output_prefix
+        params.group_column = group_column
+        params.mode = mode
+        params.ncat = ncat
+        params.ncat_dominant = ncat_dominant
+    }
+
+    // Verify outputs exist
+    output {
+        assert output:
+            assert file("results/heatmap_test/heatmap_test.html")
+            assert file("results/heatmap_test/heatmap_test_allele_summary.tsv")
+            assert file("results/heatmap_test/heatmap_test_allele_summary_counts.tsv")
+            assert file("results/heatmap_test/heatmap_test_allele_dominance.tsv")
+            assert file("results/heatmap_test/heatmap_test_allelic_detailed_matrix.tsv")
+            assert file("results/heatmap_test/heatmap_test_colors.tsv")
+    }
+}

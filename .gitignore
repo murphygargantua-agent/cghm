@@ -1,0 +1,50 @@
+# Nextflow
+.nextflow/
+.nextflow.log*
+work/
+results/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+*.log
+.venv/
+venv/
+
+# Large files (data artifacts are tracked explicitly in data/)
+*.zip
+*.tar.gz
+*.tar
+*.fasta
+*.fa
+*.fna
+*.tsv
+*.xlsx
+*.xls
+*.nwk
+*.tree
+*.dta
+*.pdf
+*.html
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Explicitly allow test data and the schema zip
+!data/C_trachomatis_cgMLST_schema.zip
+!modules/**/*.tsv

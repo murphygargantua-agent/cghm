@@ -1,0 +1,21 @@
+{
+    "modules": {
+        "local": {
+            "allelic-heatmap": {
+                "name": "cghm::allelic-heatmap",
+                "path": "modules/local/allelic-heatmap",
+                "version": "1.0.0",
+                "license": "MIT"
+            },
+            "allelic-distribution": {
+                "name": "cghm::allelic-distribution",
+                "path": "modules/local/allelic-distribution",
+                "version": "1.0.0",
+                "license": "MIT"
+            }
+        }
+    },
+    "nextflow": {
+        "config": "config.nf"
+    }
+}

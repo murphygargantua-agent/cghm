@@ -1,0 +1,36 @@
+# nf-core module: allelic-distribution
+name: "cghm::allelic-distribution"
+version: "1.0.0"
+license: "MIT"
+authors:
+  - "Murphy"
+homepage: "https://github.com/insapathogenomics/allelic_diversity"
+description: "cgMLST allelic distribution analysis for Chlamydia trachomatis"
+references:
+  - "Lohdia et al., 2025. Advancing Chlamydia trachomatis genomic surveillance and research with a novel core-genome MLST (cgMLST) approach."
+
+container: "docker.io/library/python:3.10-slim"
+
+parameters:
+  - distribution_output_dir
+  - distribution_output_prefix
+  - distribution_group_column
+  - distribution_group_interest
+
+inputs:
+  - allele_matrix:
+      type: file
+      description: "cgMLST allele matrix TSV (samples x loci)"
+  - metadata:
+      type: file
+      description: "sample metadata TSV (samples x columns)"
+
+outputs:
+  - summary:
+      type: file
+      pattern: "*_summary.tsv"
+      description: "proportion of isolates per group harboring each allele"
+  - distribution:
+      type: file
+      pattern: "*_distribution.tsv"
+      description: "per-locus allele distribution per group"
