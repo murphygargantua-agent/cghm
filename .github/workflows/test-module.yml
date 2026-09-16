@@ -12,30 +12,25 @@ permissions:
   actions: read
 
 jobs:
-  test:
+  python:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [ "3.10", "3.11" ]
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pandas numpy biopython plotly
-
       - name: Python syntax check
         run: python -m py_compile modules/local/allelic-heatmap/bin/allelic_heatmap.py modules/local/allelic-distribution/bin/allelic_distribution.py run_cghm.py
-
-      - name: Run Python scripts against test data
+      - name: Run scripts against test data
         run: |
           python run_cghm.py \
             --allele-matrix modules/local/allelic-heatmap/tests/data/test_matrix.tsv \
@@ -43,11 +38,10 @@ jobs:
             --tree modules/local/allelic-heatmap/tests/data/test_tree.nwk \
             --output-dir /tmp/cghm_test --output-prefix test \
             --group-column lineage --mode frequency --ncat 3 --ncat-dominant 3
-
       - name: Verify outputs
         run: |
-          for f in /tmp/cghm_test/test.html /tmp/cghm_test/test_allele_summary.tsv /tmp/cghm_test/test_allele_summary_counts.tsv /tmp/cghm_test/test_allele_dominance.tsv /tmp/cghm_test/test_allelic_detailed_matrix.tsv /tmp/cghm_test/test_colors.tsv; do
-            test -f "$f" && echo "OK: $f ($(wc -c < "$f") bytes)" || echo "MISSING: $f"
+          for f in /tmp/cghm_test/test.html /tmp/cghm_test/test_allele_summary.tsv /tmp/cghm_test/test_allele_summary_counts.tsv /tmp/cghm_test/test_allele_dominance.tsv /tmp/cghm_test/test_allelic_detailed_matrix.tsv /tmp/cghm_test/test_colors.tsv /tmp/cghm_test/test_lineage_summary.tsv /tmp/cghm_test/test_lineage_distribution.tsv; do
+            test -f "$f" && echo "OK: $f" || echo "MISSING: $f"
           done
 
   nextflow:
@@ -55,11 +49,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Nextflow
-        uses: nf-core/setup-nextflow@v2
-        with:
-          version: "24.04.6"
-
+      - name: Install Nextflow
+        run: |
+          curl -sL "https://api.github.com/repos/nextflow-io/cli/releases/latest" | grep -o '"tag_name": "[^"]*"' | head -1 | sed 's/"tag_name": "//;s/"//' > /tmp/nf_version
+          NF_VERSION=$(cat /tmp/nf_version)
+          echo "Nextflow version: $NF_VERSION"
+          mkdir -p /opt/nextflow
+          curl -sL -o /opt/nextflow/nf.zip "https://api.github.com/repos/nextflow-io/cli/releases/download/$NF_VERSION/nextflow-$NF_VERSION-standalone.zip" || curl -sL -o /opt/nextflow/nf.zip "https://github.com/nextflow-io/cli/releases/download/$NF_VERSION/nextflow-$NF_VERSION-standalone.zip"
+          cd /opt/nextflow && unzip -q nf.zip && rm nf.zip && chmod +x nextflow
       - name: Nextflow syntax check
-        run: nextflow run main.nf -c config.nf --dry-run
+        run: /opt/nextflow/nextflow run main.nf -c config.nf --dry-run
+      - name: Run pipeline against test data
+        run: /opt/nextflow/nextflow run main.nf -c config.nf
+      - name: Verify outputs
+        run: |
+          find work -type f -name "*.tsv" -o -name "*.html" | sort | while read f; do echo "OK: $f ($(wc -c < "$f") bytes)"; done
