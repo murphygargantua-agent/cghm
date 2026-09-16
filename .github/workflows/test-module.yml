@@ -19,16 +19,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pandas numpy biopython plotly
+
       - name: Python syntax check
         run: python -m py_compile modules/local/allelic-heatmap/bin/allelic_heatmap.py modules/local/allelic-distribution/bin/allelic_distribution.py run_cghm.py
+
       - name: Run scripts against test data
         run: |
           python run_cghm.py \
@@ -37,6 +41,7 @@ jobs:
             --tree modules/local/allelic-heatmap/tests/data/test_tree.nwk \
             --output-dir /tmp/cghm_test --output-prefix test \
             --group-column lineage --mode frequency --ncat 3 --ncat-dominant 3
+
       - name: Verify outputs
         run: |
           for f in /tmp/cghm_test/test.html /tmp/cghm_test/test_allele_summary.tsv /tmp/cghm_test/test_allele_summary_counts.tsv /tmp/cghm_test/test_allele_dominance.tsv /tmp/cghm_test/test_allelic_detailed_matrix.tsv /tmp/cghm_test/test_colors.tsv /tmp/cghm_test/test_lineage_summary.tsv /tmp/cghm_test/test_lineage_distribution.tsv; do
@@ -48,17 +53,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Install Nextflow
         run: |
-          wget -q -O nf.zip "https://github.com/nextflow-io/cli/releases/download/v24.04.6/nextflow-24.04.6-standalone.zip" || wget -q -O nf.zip "https://api.github.com/repos/nextflow-io/cli/releases/download/v24.04.6/nextflow-24.04.6-standalone.zip"
+          curl -fsSL -o nf.zip "https://github.com/nextflow-io/cli/releases/download/v24.04.6/nextflow-24.04.6-standalone.zip" || \
+          curl -fsSL -o nf.zip "https://api.github.com/repos/nextflow-io/cli/releases/download/v24.04.6/nextflow-24.04.6-standalone.zip"
           unzip -q nf.zip -d /opt/nextflow
           rm nf.zip
           chmod +x /opt/nextflow/nextflow
+
       - name: Nextflow syntax check
         run: /opt/nextflow/nextflow run main.nf -c config.nf --dry-run
+
       - name: Run pipeline against test data
         run: /opt/nextflow/nextflow run main.nf -c config.nf
         working-directory: ${{ github.workspace }}
+
       - name: Verify outputs
         run: |
           find work -type f \( -name "*.tsv" -o -name "*.html" \) | sort | while read f; do echo "OK: $f ($(wc -c < "$f") bytes)"; done
